@@ -145,6 +145,7 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
             LittleFS.end();
             resultLength = 0;
             _rebootRequested = millis();
+            openknx.triggerSavePin();
             return true;
         }
     }
