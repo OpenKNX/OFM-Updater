@@ -27,7 +27,7 @@ class UpdateModule : public OpenKNX::Module
 };
 
 //Give your Module a name
-//it will be desplayed when you use the method log("Hello")
+//it will be displayed when you use the method log("Hello")
 // -> Log     Hello
 const std::string UpdateModule::name()
 {
@@ -141,15 +141,15 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
             LittleFS.end();
             resultLength = 0;
             _rebootRequested = millis();
-            //logInfoP("Triggering SavePin");
-            //openknx.triggerSavePin();
+            logInfoP("SAVE data to flash");
+            openknx.flash.save();
             logInfoP("Device will restart in 2000ms");
             return true;
         }
 
         case 246:
         {
-            logErrorP("Update aborted by knxupdater");
+            logErrorP("Update aborted by KnxUpdater");
             _isDownloading = false;
             _file.close();
             LittleFS.end();
