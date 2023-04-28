@@ -27,7 +27,7 @@ class UpdateModule : public OpenKNX::Module
 };
 
 //Give your Module a name
-//it will be desplayed when you use the method log("Hello")
+//it will be displayed when you use the method log("Hello")
 // -> Log     Hello
 const std::string UpdateModule::name()
 {
@@ -65,18 +65,10 @@ void UpdateModule::loop()
         }
         
         _lastPosition = _position;
-
-        if(_position - _lastPosition == 0)
-            _errorCount++;
-
-        if(_errorCount > 3)
-        {
-            logErrorP("Aborting Update...");
-            _isDownloading = false;
-            _file.close();
-        }
     }
 }
+
+int counter = 0;
 
 bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
@@ -114,19 +106,22 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
                 return true;
             }
 
-            if(_file.write(data, length) != length)
+            uint32_t position = data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0];
+            _file.seek(position);
+
+            if(_file.write(data +4, length -4) != length -4)
             {
                 resultData[0] = 0x01;
                 resultLength = 1;
                 logErrorP("Wrong type");
                 return true;
             }
-            _position += length;
+            _position = position + length;
 
             resultData[0] = 0x00;
 
             FastCRC16 crc16;
-            uint16_t crc = crc16.modbus(data, length);
+            uint16_t crc = crc16.modbus(data +4, length -4);
 
             resultData[1] = crc >> 8;
             resultData[2] = crc & 0xFF;
@@ -137,6 +132,7 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
         
         case 245:
         {
+            logInfoP("Updated finished");
             _isDownloading = false;
             _file.close();
             picoOTA.begin();
@@ -145,7 +141,19 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
             LittleFS.end();
             resultLength = 0;
             _rebootRequested = millis();
-            openknx.triggerSavePin();
+            logInfoP("SAVE data to flash");
+            openknx.flash.save();
+            logInfoP("Device will restart in 2000ms");
+            return true;
+        }
+
+        case 246:
+        {
+            logErrorP("Update aborted by KnxUpdater");
+            _isDownloading = false;
+            _file.close();
+            LittleFS.end();
+            resultLength = 0;
             return true;
         }
     }
