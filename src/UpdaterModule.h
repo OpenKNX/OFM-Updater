@@ -31,7 +31,7 @@ class UpdaterModule : public OpenKNX::Module
 // -> Log     Hello
 const std::string UpdaterModule::name()
 {
-    return "UpdaterModule";
+    return "Updater";
 }
 
 //You can also give it a version
