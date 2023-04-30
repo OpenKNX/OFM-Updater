@@ -5,7 +5,7 @@
 
 #define INFO_INTERVAL 10000
 
-class UpdateModule : public OpenKNX::Module
+class UpdaterModule : public OpenKNX::Module
 {
 	public:
 		const std::string name() override;
@@ -29,19 +29,19 @@ class UpdateModule : public OpenKNX::Module
 //Give your Module a name
 //it will be displayed when you use the method log("Hello")
 // -> Log     Hello
-const std::string UpdateModule::name()
+const std::string UpdaterModule::name()
 {
-    return "UpdateModule";
+    return "UpdaterModule";
 }
 
 //You can also give it a version
 //will be displayed in Command Infos 
-const std::string UpdateModule::version()
+const std::string UpdaterModule::version()
 {
     return "0.0dev";
 }
 
-void UpdateModule::loop()
+void UpdaterModule::loop()
 {
     if(_rebootRequested && _rebootRequested + 2000 < millis())
         rp2040.reboot();
@@ -70,7 +70,7 @@ void UpdateModule::loop()
 
 int counter = 0;
 
-bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     if(objectIndex != 0) return false;
 
@@ -160,7 +160,7 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
     return false;
 }
 
-bool UpdateModule::processFunctionPropertyState(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+bool UpdaterModule::processFunctionPropertyState(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     return false;
 }
