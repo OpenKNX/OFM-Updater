@@ -43,6 +43,7 @@ const std::string UpdaterModule::version()
 
 void UpdaterModule::loop()
 {
+    logIndentUp();
     if(_rebootRequested && _rebootRequested + 2000 < millis())
         rp2040.reboot();
 
@@ -66,6 +67,7 @@ void UpdaterModule::loop()
         
         _lastPosition = _position;
     }
+    logIndentDown();
 }
 
 int counter = 0;
@@ -86,7 +88,9 @@ bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             _position = 0;
             _lastInfo = millis();
             _lastPosition = 0;
+            logIndentUp();
             logInfoP("File Size: %i", _size);
+            logIndentDown();
             LittleFS.begin();
             LittleFS.format();
             _file = LittleFS.open("firmware.bin", "w");
@@ -102,7 +106,9 @@ bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             {
                 resultData[0] = 0x02;
                 resultLength = 1;
+                logIndentUp();
                 logErrorP("Download aborted");
+                logIndentDown();
                 return true;
             }
 
@@ -113,7 +119,9 @@ bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             {
                 resultData[0] = 0x01;
                 resultLength = 1;
+                logIndentUp();
                 logErrorP("Wrong type");
+                logIndentDown();
                 return true;
             }
             _position = position + length;
@@ -132,6 +140,7 @@ bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propert
         
         case 245:
         {
+            logIndentUp();
             logInfoP("Updated finished");
             _isDownloading = false;
             _file.close();
@@ -144,12 +153,15 @@ bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             logInfoP("SAVE data to flash");
             openknx.flash.save();
             logInfoP("Device will restart in 2000ms");
+            logIndentDown();
             return true;
         }
 
         case 246:
         {
+            logIndentUp();
             logErrorP("Update aborted by KnxUpdater");
+            logIndentDown();
             _isDownloading = false;
             _file.close();
             LittleFS.end();
