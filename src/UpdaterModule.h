@@ -58,7 +58,7 @@ void UpdaterModule::loop()
 
         if(_errorCount > 2)
         {
-            logErrorP("Aborting Update.... %i", _errorCount);
+            logErrorP("Aborting Update.... (after %i retries)", _errorCount);
             _isDownloading = false;
             _file.close();
             LittleFS.end();
@@ -88,7 +88,7 @@ bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             _lastInfo = millis();
             _lastPosition = 0;
             logIndentUp();
-            logInfoP("File Size: %i", _size);
+            logInfoP("File Size: %i Bytes", _size);
             logIndentDown();
             if(!LittleFS.begin())
             {
