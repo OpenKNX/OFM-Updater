@@ -150,7 +150,6 @@ bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             LittleFS.end();
             resultLength = 0;
             _rebootRequested = millis();
-            logInfoP("SAVE data to flash");
             openknx.flash.save();
             logInfoP("Device will restart in 2000ms");
             logIndentDown();
