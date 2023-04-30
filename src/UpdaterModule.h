@@ -90,8 +90,10 @@ bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propert
             logIndentUp();
             logInfoP("File Size: %i", _size);
             logIndentDown();
-            LittleFS.begin();
-            LittleFS.format();
+            if(!LittleFS.begin())
+            {
+                LittleFS.format();
+            }
             _file = LittleFS.open("firmware.bin", "w");
             resultLength = 0;
             _isDownloading = true;
