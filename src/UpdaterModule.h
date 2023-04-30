@@ -70,8 +70,6 @@ void UpdaterModule::loop()
     logIndentDown();
 }
 
-int counter = 0;
-
 bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     if(objectIndex != 0) return false;
