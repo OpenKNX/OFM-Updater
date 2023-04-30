@@ -1,6 +1,5 @@
-#include <Arduino.h>
-#include <PicoOTA.h>
 #include "OpenKNX.h"
+#include <PicoOTA.h>
 #include "FastCRC.h"
 
 #define INFO_INTERVAL 10000
