@@ -1,11 +1,10 @@
-#include <Arduino.h>
-#include <PicoOTA.h>
 #include "OpenKNX.h"
+#include <PicoOTA.h>
 #include "FastCRC.h"
 
 #define INFO_INTERVAL 10000
 
-class UpdateModule : public OpenKNX::Module
+class UpdaterModule : public OpenKNX::Module
 {
 	public:
 		const std::string name() override;
@@ -29,20 +28,21 @@ class UpdateModule : public OpenKNX::Module
 //Give your Module a name
 //it will be displayed when you use the method log("Hello")
 // -> Log     Hello
-const std::string UpdateModule::name()
+const std::string UpdaterModule::name()
 {
-    return "UpdateModule";
+    return "Updater";
 }
 
 //You can also give it a version
 //will be displayed in Command Infos 
-const std::string UpdateModule::version()
+const std::string UpdaterModule::version()
 {
     return "0.0dev";
 }
 
-void UpdateModule::loop()
+void UpdaterModule::loop()
 {
+    logIndentUp();
     if(_rebootRequested && _rebootRequested + 2000 < millis())
         rp2040.reboot();
 
@@ -58,7 +58,7 @@ void UpdateModule::loop()
 
         if(_errorCount > 2)
         {
-            logErrorP("Aborting Update.... %i", _errorCount);
+            logErrorP("Aborting Update.... (after %i retries)", _errorCount);
             _isDownloading = false;
             _file.close();
             LittleFS.end();
@@ -66,11 +66,12 @@ void UpdateModule::loop()
         
         _lastPosition = _position;
     }
+    logIndentDown();
 }
 
 int counter = 0;
 
-bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+bool UpdaterModule::processFunctionProperty(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     if(objectIndex != 0) return false;
 
@@ -86,9 +87,13 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
             _position = 0;
             _lastInfo = millis();
             _lastPosition = 0;
-            logInfoP("File Size: %i", _size);
-            LittleFS.begin();
-            LittleFS.format();
+            logIndentUp();
+            logInfoP("File Size: %i Bytes", _size);
+            logIndentDown();
+            if(!LittleFS.begin())
+            {
+                LittleFS.format();
+            }
             _file = LittleFS.open("firmware.bin", "w");
             resultLength = 0;
             _isDownloading = true;
@@ -102,7 +107,9 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
             {
                 resultData[0] = 0x02;
                 resultLength = 1;
+                logIndentUp();
                 logErrorP("Download aborted");
+                logIndentDown();
                 return true;
             }
 
@@ -113,7 +120,9 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
             {
                 resultData[0] = 0x01;
                 resultLength = 1;
+                logIndentUp();
                 logErrorP("Wrong type");
+                logIndentDown();
                 return true;
             }
             _position = position + length;
@@ -132,6 +141,7 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
         
         case 245:
         {
+            logIndentUp();
             logInfoP("Updated finished");
             _isDownloading = false;
             _file.close();
@@ -141,15 +151,17 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
             LittleFS.end();
             resultLength = 0;
             _rebootRequested = millis();
-            logInfoP("SAVE data to flash");
             openknx.flash.save();
             logInfoP("Device will restart in 2000ms");
+            logIndentDown();
             return true;
         }
 
         case 246:
         {
+            logIndentUp();
             logErrorP("Update aborted by KnxUpdater");
+            logIndentDown();
             _isDownloading = false;
             _file.close();
             LittleFS.end();
@@ -160,7 +172,7 @@ bool UpdateModule::processFunctionProperty(uint8_t objectIndex, uint8_t property
     return false;
 }
 
-bool UpdateModule::processFunctionPropertyState(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
+bool UpdaterModule::processFunctionPropertyState(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength)
 {
     return false;
 }
