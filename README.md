@@ -30,7 +30,7 @@ void setup()
 	const uint8_t firmwareRevision = 0;
     openknx.init(firmwareRevision);
     openknx.addModule(1, ...);
-    openknx.addModule(2, new UpdateModule());
+    openknx.addModule(2, new UpdaterModule());
     openknx.setup();
 
 }
